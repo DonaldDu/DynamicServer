@@ -5,6 +5,7 @@ import android.view.View
 import android.widget.TextView
 import com.dhy.dynamicserver.data.RemoteConfig
 import com.dhy.xintent.XCommon
+import com.dhy.xintent.formatText
 
 open class TestServerUtil(context: Context, api: TestConfigApi) : TestConfigUtil(context, api, "TestServers") {
     override fun loadData(): List<RemoteConfig> {
@@ -19,7 +20,7 @@ open class TestServerUtil(context: Context, api: TestConfigApi) : TestConfigUtil
         @JvmStatic
         fun updateServerLabel(serverLabel: TextView, usingTestServer: RemoteConfig) {
             serverLabel.visibility = View.VISIBLE
-            XCommon.setTextWithFormat(serverLabel, usingTestServer.toString())
+            serverLabel.formatText(serverLabel, usingTestServer.toString())
         }
     }
 }

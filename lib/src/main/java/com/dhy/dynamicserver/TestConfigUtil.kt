@@ -44,7 +44,7 @@ abstract class TestConfigUtil(
     }
 
     internal open fun loadData(): List<RemoteConfig> {
-        return testConfigSetting.datas[configName] ?: emptyList()
+        return testConfigSetting.data[configName] ?: emptyList()
     }
 
     fun show() {
@@ -103,12 +103,12 @@ abstract class TestConfigUtil(
     }
 
     private fun refreshData() {
-        refreshData(context, api, getLcId(), getLcKey(), refreshDatasCallback)
+        refreshData(context, api, getLcId(), getLcKey(), refreshDataCallback)
     }
 
-    private val refreshDatasCallback: (List<RemoteConfig>?) -> Unit = { result ->
+    private val refreshDataCallback: (List<RemoteConfig>?) -> Unit = { result ->
         if (result != null) {
-            testConfigSetting.datas[configName] = result
+            testConfigSetting.data[configName] = result
             XPreferences.put(context, testConfigSetting)
             onGetData(result)
         } else {

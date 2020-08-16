@@ -9,5 +9,5 @@ import java.util.Map;
 
 @Keep
 public class TestConfigSetting implements Serializable {
-    public final Map<String, List<RemoteConfig>> datas = new HashMap<>();
+    public final Map<String, List<RemoteConfig>> data = new HashMap<>();
 }
