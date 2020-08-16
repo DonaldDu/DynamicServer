@@ -35,7 +35,7 @@ annotation class DynamicBaseUrl(
      */
     val append: String = "",
     /**
-     * marke as root api for  [ApiHolderUtil.isRelease]
+     * mark as root api for  [ApiHolderUtil.isRelease]
      */
     val rootApi: Boolean = false
 )
