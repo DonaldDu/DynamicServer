@@ -1,9 +1,13 @@
 package com.dhy.dynamicserver.data
 
+import android.annotation.SuppressLint
 import android.content.Context
+import android.widget.Toast
 import androidx.annotation.Keep
 import com.dhy.dynamicserver.IConfigFormatter
 import com.dhy.dynamicserver.TestConfigUtil
+import com.dhy.dynamicserver.data.RemoteConfig.Companion.dynamicServers
+import com.dhy.dynamicserver.data.RemoteConfig.Companion.releaseServerTypeName
 import com.dhy.xpreference.XPreferences
 import java.io.Serializable
 
@@ -18,8 +22,8 @@ class RemoteConfig : Serializable {
     @Transient
     var configFormatter: IConfigFormatter? = null
     override fun toString(): String {
-        val formater = configFormatter ?: TestConfigUtil.configFormatter
-        return formater.format(this)
+        val formatter = configFormatter ?: TestConfigUtil.configFormatter
+        return formatter.format(this)
     }
 
     val isEmpty: Boolean
@@ -27,61 +31,99 @@ class RemoteConfig : Serializable {
             return name.isEmpty()
         }
 
+    @SuppressLint("DefaultLocale")
     fun isRelease(): Boolean {
-        return name.toLowerCase() == "release"
+        return name.toLowerCase() == releaseServerTypeName
     }
 
-    fun toConfigs(): List<Config> {
+    fun toServers(): List<IDynamicServer> {
         return values.map {
             val kv = it.split("@")
-            Config(kv.first(), kv.last())
+            Server(name, kv.first(), kv.last())
         }
     }
 
-    fun updateServersMap(context: Context? = null) {
-        serversMap.clear()
+    fun updateServerMap(context: Context? = null) {
+        serverMap.clear()
         values.forEach {
             val kv = it.split("@")
-            serversMap[kv.first()] = kv.last()
+            serverMap[kv.first()] = kv.last()
         }
         if (context != null) XPreferences.put(context, this)
     }
 
-    fun isValid(): Boolean {
-        val servers = toConfigs().map { it.name }
+    fun hasAllServers(): Boolean {
+        val newServers by lazy { dynamicServers.map { it.name } }
+        val servers = toServers().map { it.name }
         return servers.containsAll(newServers)
     }
 
     companion object {
         @JvmStatic
-        lateinit var dynamicServers: List<IDynamicServer>
-        private val newServers by lazy { dynamicServers.map { it.name } }
+        internal var dynamicServers: List<IDynamicServer> = emptyList()
+        internal var releaseServerTypeName: String = "release"
 
         @JvmStatic
-        val serversMap: MutableMap<String, String> = mutableMapOf()
+        val serverMap: MutableMap<String, String> = mutableMapOf()
 
         @JvmStatic
-        fun getConfigs(): List<RemoteConfig> {
-            val test = RemoteConfig().apply { name = "Test" }
-            val release = RemoteConfig().apply { name = "Release" }
-            dynamicServers.forEach {
-                test.add(it.name, it.test)
-                release.add(it.name, it.release)
-            }
-            return listOf(test, release)
+        fun initDynamicServer(dynamicServer: Class<out Enum<*>>, releaseServerTypeName: String = "release") {
+            this.releaseServerTypeName = releaseServerTypeName
+            dynamicServers = dynamicServer.getDynamicServers()
+        }
+
+        internal fun getConfigs(): List<RemoteConfig> {
+            return dynamicServers.groupBy { it.type }
+                .map {
+                    val config = RemoteConfig()
+                    config.name = it.key
+                    it.value.forEach { ds ->
+                        config.add(ds.name, ds.value)
+                    }
+                    config
+                }
         }
 
         @JvmStatic
-        fun getReleaseConfig(): RemoteConfig {
-            return getConfigs().find { it.isRelease() }!!
+        internal fun getReleaseConfig(): RemoteConfig? {
+            return getConfigs().find { it.isRelease() }
         }
     }
 }
 
+private fun Class<out Enum<*>>.getDynamicServers(): List<IDynamicServer> {
+    val dynamicServers: MutableList<IDynamicServer> = mutableListOf()
+    val serverTypes = declaredFields.filter {
+        it.type.isAssignableFrom(String::class.java)
+    }
+    val servers = declaredFields.filter {
+        it.type.isAssignableFrom(this)
+    }.map { it.get(null) as Enum<*> }
+
+    serverTypes.forEach { type ->
+        type.isAccessible = true
+        servers.forEach {
+            dynamicServers.add(Server(type.name, it.name, type.get(it) as String))
+        }
+    }
+
+    return dynamicServers
+}
+
 fun Context.getUsingTestServer(): RemoteConfig {
     var testServer: RemoteConfig = XPreferences.get(this)
-    if (testServer.isEmpty || !testServer.isValid()) {
-        testServer = RemoteConfig.getReleaseConfig()
+    if (testServer.isEmpty || !testServer.hasAllServers()) {
+        val release = RemoteConfig.getReleaseConfig()
+        testServer = release ?: testServer
+        if (release == null) {
+            val msg = if (dynamicServers.isEmpty()) {
+                "please call RemoteConfig.initDynamicServers first"
+            } else {
+                "dynamicServer must contain '$releaseServerTypeName' server type"
+            }
+            Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+            println(msg)
+        }
     }
     return testServer
 }

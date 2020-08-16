@@ -8,7 +8,7 @@ import com.dhy.xintent.XCommon
 
 open class TestServerUtil(context: Context, api: TestConfigApi) : TestConfigUtil(context, api, "TestServers") {
     override fun loadData(): List<RemoteConfig> {
-        return super.loadData().filter { it.isValid() }
+        return super.loadData().filter { it.hasAllServers() }
     }
 
     override fun genDefaultConfigs(): List<RemoteConfig> {

@@ -1,11 +1,10 @@
 package com.dhy.dynamicserver
 
 import android.content.Context
-import android.widget.EditText
 import android.widget.TextView
 import com.dhy.dynamicserver.data.RemoteConfig
 
-open class TestUserUtil(context: Context, api: TestConfigApi, private val userEt: EditText?) : TestConfigUtil(context, api, "TestUsers") {
+open class TestUserUtil(context: Context, api: TestConfigApi) : TestConfigUtil(context, api, "TestUsers") {
     /**
      * 建议创建默认样例后，在远程复制样例添加真实数据
      * */
@@ -27,8 +26,4 @@ open class TestUserUtil(context: Context, api: TestConfigApi, private val userEt
     }
 
     override fun setUpConfigItemView(tv: TextView) {}
-
-    override fun onConfigSelected(config: RemoteConfig) {
-        userEt?.setText(config.values.first())
-    }
 }

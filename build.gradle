@@ -19,22 +19,7 @@ allprojects {
         maven { url 'https://jitpack.io' }
     }
 }
-subprojects {
-    project.ext {
-        INIT_X_LC_ID_KEY = {
-            buildTypes {
-                debug {
-                    resValue "string", "X_LC_ID", findProperty('X_LC_ID') ?: ""
-                    resValue "string", "X_LC_KEY", findProperty('X_LC_KEY') ?: ""
-                }
-                release {
-                    resValue "string", "X_LC_ID", ""
-                    resValue "string", "X_LC_KEY", ""
-                }
-            }
-        }
-    }
-}
+
 task clean(type: Delete) {
     delete rootProject.buildDir
 }

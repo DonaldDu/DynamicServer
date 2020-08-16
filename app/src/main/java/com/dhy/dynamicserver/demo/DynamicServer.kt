@@ -1,38 +1,32 @@
 package com.dhy.dynamicserver.demo
 
 import android.content.Context
-import com.dhy.dynamicserver.data.IDynamicServer
 import com.dhy.dynamicserver.data.RemoteConfig
 import com.dhy.dynamicserver.data.getUsingTestServer
+import com.dhy.dynamicserver.demo.ApiUtil.Companion.apiUtil
 
 enum class DynamicServer(private val release: String, private val test: String) {
-    BASE_URL("http://www.abc1.com", "http://192.168.141.34:8093"),
-    YW_URL("http://www.abc2.com", "http://192.168.141.34:8085");
+    APP_BASE("http://www.app.com", "http://192.168.141.34:8093"),
+    USER_CENTER("http://www.user.com", "http://192.168.141.34:8094"),
+    ;
 
     override fun toString(): String {
-        return RemoteConfig.serversMap[name] ?: release
-    }
-
-    private class Server(val server: DynamicServer) : IDynamicServer {
-        override val name: String
-            get() = server.name
-        override val release: String
-            get() = server.release
-        override val test: String
-            get() = server.test
+        return RemoteConfig.serverMap[name] ?: release
     }
 
     companion object {
-        fun load(context: Context) {
+        fun init(context: Context) {
             if (BuildConfig.DEBUG) {
-                RemoteConfig.dynamicServers = values().map { Server(it) }
+                RemoteConfig.initDynamicServer(DynamicServer::class.java)
                 updateServer(context.getUsingTestServer())
             }
         }
 
         fun updateServer(config: RemoteConfig, context: Context? = null) {
-            config.updateServersMap(context)
-//            RetrofitManager.update()//todo
+            config.updateServerMap(context)
+            config.toServers().forEach {
+                if (it.releaseValue != null) apiUtil.updateApi(it.releaseValue!!, it.value)
+            }
         }
     }
 }

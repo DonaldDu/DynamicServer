@@ -13,9 +13,11 @@ import com.dhy.xpreference.XPreferences
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.schedulers.Schedulers
 
-abstract class TestConfigUtil(private val context: Context,
-                              private val api: TestConfigApi,
-                              private val configName: String) : AdapterView.OnItemClickListener {
+abstract class TestConfigUtil(
+    private val context: Context,
+    private val api: TestConfigApi,
+    private val configName: String
+) : AdapterView.OnItemClickListener {
 
     private lateinit var configs: List<RemoteConfig>
     private var testConfigSetting: TestConfigSetting = XPreferences.get(context)
@@ -28,10 +30,16 @@ abstract class TestConfigUtil(private val context: Context,
         var configFormatter: IConfigFormatter = object : IConfigFormatter {}
     }
 
-    fun initOnViewLongClick(view: View) {
-        view.setOnLongClickListener {
-            show()
-            true
+    fun initShowOnClick(view: View, longClick: Boolean = true) {
+        if (longClick) {
+            view.setOnLongClickListener {
+                show()
+                true
+            }
+        } else {
+            view.setOnClickListener {
+                show()
+            }
         }
     }
 
@@ -82,8 +90,6 @@ abstract class TestConfigUtil(private val context: Context,
 
     private fun onGetDatas(configs: List<RemoteConfig>) {
         this.configs = configs
-        testConfigSetting.datas[configName] = configs
-        XPreferences.put(context, testConfigSetting)
         if (configs.isNotEmpty()) updateListView()
     }
 
@@ -101,15 +107,18 @@ abstract class TestConfigUtil(private val context: Context,
     }
 
     private val refreshDatasCallback: (List<RemoteConfig>?) -> Unit = { result ->
-        if (result != null) onGetDatas(result)
-        else {
+        if (result != null) {
+            testConfigSetting.datas[configName] = result
+            XPreferences.put(context, testConfigSetting)
+            onGetDatas(result)
+        } else {
             val msg = if (isTestUser) "测试用户" else "测试服务器地址"
             AlertDialog.Builder(context)
-                    .setMessage("获取${msg}数据失败")
-                    .setNegativeButton("关闭", null)
-                    .setPositiveButton("创建默认数据") { _, _ ->
-                        createDefaultConfigs()
-                    }.show()
+                .setMessage("暂无${msg}数据")
+                .setNegativeButton("关闭", null)
+                .setPositiveButton("创建默认数据") { _, _ ->
+                    createDefaultConfigs()
+                }.show()
         }
     }
 
@@ -128,13 +137,13 @@ abstract class TestConfigUtil(private val context: Context,
     private fun refreshDatas(context: Context, api: TestConfigApi, lcId: String, lcKey: String, callback: (List<RemoteConfig>?) -> Unit) {
         val request = FetchConfigRequest(context.packageName, configName)
         api.fetchTestConfigs(lcId, lcKey, request)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(object : ObserverX<ConfigResponse>(context) {
-                    override fun onResponse(response: ConfigResponse) {
-                        callback(response.configs)
-                    }
-                })
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(object : ObserverX<ConfigResponse>(context) {
+                override fun onResponse(response: ConfigResponse) {
+                    callback(response.configs)
+                }
+            })
     }
 
     protected abstract fun genDefaultConfigs(): List<RemoteConfig>
@@ -145,12 +154,12 @@ abstract class TestConfigUtil(private val context: Context,
         val request = CreateConfigRequest(context.packageName, configName)
         request.data = genDefaultConfigs()
         api.createTestConfigs(lcId, lcKey, request).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(object : ObserverX<LCResponse>(context) {
-                    override fun onResponse(response: LCResponse) {
-                        callback(response)
-                    }
-                })
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(object : ObserverX<LCResponse>(context) {
+                override fun onResponse(response: LCResponse) {
+                    callback(response)
+                }
+            })
     }
 
     private fun dismissDialog() {
