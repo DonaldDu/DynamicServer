@@ -1,5 +1,4 @@
-# DynamicServer [![](https://jitpack.io/v/DonaldDu/DynamicServer.svg)](https://jitpack.io/#DonaldDu/DynamicServer)
-# 动态配置服务 [Github](https://github.com/DonaldDu/DynamicServer)
+# DynamicServer [![](https://jitpack.io/v/DonaldDu/DynamicServer.svg)](https://jitpack.io/#DonaldDu/DynamicServer) [JitPack](https://jitpack.io/#DonaldDu/DynamicServer)
 测试员：服务地址临时修改为‘xx’，帮打个包吧！
 
 
@@ -172,8 +171,7 @@ android {
 }
 ```
 
-## 添加依赖 [![](https://jitpack.io/v/DonaldDu/DynamicServer.svg)](https://jitpack.io/#DonaldDu/DynamicServer)
-## 添加依赖 <a href="https://jitpack.io/#DonaldDu/DynamicServer"><img align="center" src="https://jitpack.io/v/DonaldDu/DynamicServer.svg" /></a>
+## 添加依赖 [![](https://jitpack.io/v/DonaldDu/DynamicServer.svg)](https://jitpack.io/#DonaldDu/DynamicServer) [JitPack](https://jitpack.io/#DonaldDu/DynamicServer)
 ```
 dependencies {
     implementation 'com.github.DonaldDu:DynamicServer:x.x.x'//JitPack version
