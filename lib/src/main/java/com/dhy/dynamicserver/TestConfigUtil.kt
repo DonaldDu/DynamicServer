@@ -71,7 +71,7 @@ abstract class TestConfigUtil(
     }
 
     private fun updateListView() {
-        if (configs.isEmpty()) onGetDatas(genDefaultConfigs())
+        if (configs.isEmpty()) onGetData(genDefaultConfigs())
         configs.forEach {
             it.configFormatter = getConfigFormatter()
         }
@@ -88,29 +88,29 @@ abstract class TestConfigUtil(
         tv.textSize = 12f
     }
 
-    private fun onGetDatas(configs: List<RemoteConfig>) {
+    private fun onGetData(configs: List<RemoteConfig>) {
         this.configs = configs
         if (configs.isNotEmpty()) updateListView()
     }
 
     override fun onItemClick(parent: AdapterView<*>, view: View, position: Int, id: Long) {
         if (position == parent.adapter.count - 1) {//last item: refresh datas
-            refreshDatas()
+            refreshData()
         } else {//use current user
             onConfigSelected(configs[position])
             dismissDialog()
         }
     }
 
-    private fun refreshDatas() {
-        refreshDatas(context, api, getLcId(), getLcKey(), refreshDatasCallback)
+    private fun refreshData() {
+        refreshData(context, api, getLcId(), getLcKey(), refreshDatasCallback)
     }
 
     private val refreshDatasCallback: (List<RemoteConfig>?) -> Unit = { result ->
         if (result != null) {
             testConfigSetting.datas[configName] = result
             XPreferences.put(context, testConfigSetting)
-            onGetDatas(result)
+            onGetData(result)
         } else {
             val msg = if (isTestUser) "测试用户" else "测试服务器地址"
             AlertDialog.Builder(context)
@@ -125,7 +125,7 @@ abstract class TestConfigUtil(
     private fun createDefaultConfigs() {
         if (genDefaultConfigs().isNotEmpty()) {
             createDefaultConfigs {
-                if (it.isSuccess) refreshDatas()
+                if (it.isSuccess) refreshData()
                 val tip = if (it.isSuccess) "创建数据成功" else it.error
                 Toast.makeText(context, tip, Toast.LENGTH_LONG).show()
             }
@@ -134,7 +134,7 @@ abstract class TestConfigUtil(
 
     protected open fun onConfigSelected(config: RemoteConfig) {}
 
-    private fun refreshDatas(context: Context, api: TestConfigApi, lcId: String, lcKey: String, callback: (List<RemoteConfig>?) -> Unit) {
+    private fun refreshData(context: Context, api: TestConfigApi, lcId: String, lcKey: String, callback: (List<RemoteConfig>?) -> Unit) {
         val request = FetchConfigRequest(context.packageName, configName)
         api.fetchTestConfigs(lcId, lcKey, request)
             .subscribeOn(Schedulers.io())
