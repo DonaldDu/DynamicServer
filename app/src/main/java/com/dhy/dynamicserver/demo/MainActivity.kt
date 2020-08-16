@@ -23,7 +23,7 @@ class MainActivity : AppCompatActivity() {
         DynamicServer.load(this)
         val user = object : TestUserUtil(context, api, null) {
             override fun onConfigSelected(config: RemoteConfig) {
-                Toast.makeText(this@MainActivity, "用户名：${config.name}，密码：${config.values.firstOrNull()}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@MainActivity, "${config.name}：${config.values.firstOrNull()}", Toast.LENGTH_SHORT).show()
             }
         }
         user.initOnViewLongClick(buttonUser)

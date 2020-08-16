@@ -14,10 +14,8 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        resValue "string", "X_LC_ID", findProperty('X_LC_ID') ?: ''
-        resValue "string", "X_LC_KEY", findProperty('X_LC_KEY') ?: ''
     }
-
+    android.with(INIT_X_LC_ID_KEY)
     buildTypes {
         release {
             minifyEnabled false

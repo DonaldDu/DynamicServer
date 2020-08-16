@@ -7,7 +7,7 @@ import com.dhy.dynamicserver.data.getUsingTestServer
 
 enum class DynamicServer(private val release: String, private val test: String) {
     BASE_URL("http://www.abc1.com", "http://192.168.141.34:8093"),
-    YW_URL("http://www.abc2.com", "http://192.168.141.34:8085/");
+    YW_URL("http://www.abc2.com", "http://192.168.141.34:8085");
 
     override fun toString(): String {
         return RemoteConfig.serversMap[name] ?: release

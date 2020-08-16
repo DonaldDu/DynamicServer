@@ -12,16 +12,15 @@ open class TestUserUtil(context: Context, api: TestConfigApi, private val userEt
     override fun genDefaultConfigs(): List<RemoteConfig> {
         val cf = RemoteConfig()
         cf.name = "UserName"
-        cf.values.add("pwd123")
-        return listOf(cf)
+        cf.add("AccountName", "password")
+
+        val config = RemoteConfig()
+        config.name = "张三"
+        config.add("10086", "123")
+        return listOf(cf, config)
     }
 
-    private val testUserFormatter = object : IConfigFormatter {
-        override fun format(config: RemoteConfig): String {
-            return if (config.values.isNotEmpty()) "${config.name}@${config.values.first()}"
-            else config.name
-        }
-    }
+    private val testUserFormatter = object : IConfigFormatter {}
 
     override fun getConfigFormatter(): IConfigFormatter {
         return testUserFormatter
