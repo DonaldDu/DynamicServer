@@ -6,7 +6,6 @@ import androidx.appcompat.app.AppCompatActivity
 import com.dhy.dynamicserver.TestServerUtil
 import com.dhy.dynamicserver.TestUserUtil
 import com.dhy.dynamicserver.data.RemoteConfig
-import com.dhy.dynamicserver.data.getUsingTestServer
 import com.dhy.dynamicserver.demo.ApiUtil.Companion.api
 import com.dhy.dynamicserver.updateServerLabel
 import com.dhy.retrofitrxutil.ObserverX
@@ -36,7 +35,7 @@ class MainActivity : AppCompatActivity() {
         }
         server.initShowOnClick(buttonServer, false)
         server.initShowOnClick(tvServers, true)
-        tvServers.updateServerLabel(getUsingTestServer())
+        tvServers.updateServerLabel()
 
         btClearData.setOnClickListener {
             Runtime.getRuntime().exec("pm clear $packageName")

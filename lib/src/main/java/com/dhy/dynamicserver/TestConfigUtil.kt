@@ -9,13 +9,14 @@ import android.view.ViewGroup
 import android.widget.*
 import com.dhy.dynamicserver.data.*
 import com.dhy.retrofitrxutil.ObserverX
+import com.dhy.retrofitrxutil.subscribeX
 import com.dhy.xpreference.XPreferences
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.schedulers.Schedulers
 
 abstract class TestConfigUtil(
     private val context: Context,
-    private val api: TestConfigApi,
+    private val api: TestConfigApi?,
     private val configName: String
 ) : AdapterView.OnItemClickListener {
 
@@ -27,7 +28,7 @@ abstract class TestConfigUtil(
     private val isTestUser = configName == "TestUsers"
 
     companion object {
-        var configFormatter: IConfigFormatter = object : IConfigFormatter {}
+        val configFormatter: IConfigFormatter = object : IConfigFormatter {}
     }
 
     fun initShowOnClick(view: View, longClick: Boolean = true) {
@@ -84,9 +85,7 @@ abstract class TestConfigUtil(
         }
     }
 
-    protected open fun setUpConfigItemView(tv: TextView) {
-        tv.textSize = 12f
-    }
+    protected open fun setUpConfigItemView(tv: TextView) {}
 
     private fun onGetData(configs: List<RemoteConfig>) {
         this.configs = configs
@@ -103,6 +102,7 @@ abstract class TestConfigUtil(
     }
 
     private fun refreshData() {
+        if (api == null) return
         refreshData(context, api, getLcId(), getLcKey(), refreshDataCallback)
     }
 
@@ -149,17 +149,14 @@ abstract class TestConfigUtil(
     protected abstract fun genDefaultConfigs(): List<RemoteConfig>
 
     private fun createDefaultConfigs(callback: (LCResponse) -> Unit) {
+        if (api == null) return
         val lcId = getLcId()
         val lcKey = getLcKey()
         val request = CreateConfigRequest(context.packageName, configName)
         request.data = genDefaultConfigs()
-        api.createTestConfigs(lcId, lcKey, request).subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(object : ObserverX<LCResponse>(context) {
-                override fun onResponse(response: LCResponse) {
-                    callback(response)
-                }
-            })
+        api.createTestConfigs(lcId, lcKey, request).subscribeX(context) {
+            callback(it)
+        }
     }
 
     private fun dismissDialog() {
