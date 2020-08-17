@@ -27,7 +27,12 @@
 
     <TextView
         android:id="@+id/tvServers"
-        android:gravity="center"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:contentDescription="服务地址（仅测试版可见）\n%s"
+        android:gravity="center"
+        android:padding="10dp"
+        android:text="服务地址（仅测试版可见）\nhttp://www.demo.com"
+        android:visibility="gone"
+        tools:visibility="visible" />
 </LinearLayout>

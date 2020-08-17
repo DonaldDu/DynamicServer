@@ -8,6 +8,7 @@ import com.dhy.dynamicserver.TestUserUtil
 import com.dhy.dynamicserver.data.RemoteConfig
 import com.dhy.dynamicserver.data.getUsingTestServer
 import com.dhy.dynamicserver.demo.ApiUtil.Companion.api
+import com.dhy.dynamicserver.updateServerLabel
 import com.dhy.retrofitrxutil.ObserverX
 import com.dhy.retrofitrxutil.sample.SampleStyledProgressGenerator
 import kotlinx.android.synthetic.main.activity_main.*
@@ -30,12 +31,12 @@ class MainActivity : AppCompatActivity() {
         val server = object : TestServerUtil(context, api) {
             override fun onConfigSelected(config: RemoteConfig) {
                 DynamicServer.updateServer(config, context)
-                tvServers.text = config.toString()
+                tvServers.updateServerLabel(config)
             }
         }
         server.initShowOnClick(buttonServer, false)
         server.initShowOnClick(tvServers, true)
-        tvServers.text = getUsingTestServer().toString()
+        tvServers.updateServerLabel(getUsingTestServer())
 
         btClearData.setOnClickListener {
             Runtime.getRuntime().exec("pm clear $packageName")
