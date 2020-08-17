@@ -110,6 +110,10 @@ private fun Class<out Enum<*>>.getDynamicServers(): List<IDynamicServer> {
     return dynamicServers
 }
 
+fun Enum<*>.release(): String {
+    return dynamicServers.find { it.name == name && it.type == releaseServerTypeName }?.value ?: toString()
+}
+
 fun Context.getUsingTestServer(): RemoteConfig {
     var testServer: RemoteConfig = XPreferences.get(this)
     if (testServer.isEmpty || !testServer.hasAllServers()) {
