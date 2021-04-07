@@ -22,7 +22,8 @@ class MainActivity : AppCompatActivity() {
         DynamicServer.init(this)
         val user = object : TestUserUtil(context, api) {
             override fun onConfigSelected(config: RemoteConfig) {
-                Toast.makeText(context, "${config.name}：${config.values.first()}", Toast.LENGTH_SHORT).show()
+                val user = config.toTestUser()
+                Toast.makeText(context, "${user.showName}：${user.accountName}@${user.password}", Toast.LENGTH_SHORT).show()
             }
         }
         user.initShowOnClick(buttonUser, false)

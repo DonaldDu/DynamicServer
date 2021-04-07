@@ -58,6 +58,12 @@ class RemoteConfig : Serializable {
         return servers.containsAll(newServers)
     }
 
+    fun toTestUser(): TestUser {
+        val namePwd = values.first().split("@")
+        val pwd = if (namePwd.size == 2) namePwd.last() else null
+        return TestUser(name, namePwd.first(), pwd)
+    }
+
     companion object {
         @JvmStatic
         internal var dynamicServers: List<IDynamicServer> = emptyList()

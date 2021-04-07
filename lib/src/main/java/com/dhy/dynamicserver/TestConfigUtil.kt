@@ -8,11 +8,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import com.dhy.dynamicserver.data.*
-import com.dhy.retrofitrxutil.ObserverX
 import com.dhy.retrofitrxutil.subscribeX
+import com.dhy.retrofitrxutil.subscribeXBuilder
 import com.dhy.xpreference.XPreferences
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
-import io.reactivex.rxjava3.schedulers.Schedulers
 
 abstract class TestConfigUtil(
     private val context: Context,
@@ -137,13 +135,16 @@ abstract class TestConfigUtil(
     private fun refreshData(context: Context, api: TestConfigApi, lcId: String, lcKey: String, callback: (List<RemoteConfig>?) -> Unit) {
         val request = FetchConfigRequest(context.packageName, configName)
         api.fetchTestConfigs(lcId, lcKey, request)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(object : ObserverX<ConfigResponse>(context) {
-                override fun onResponse(response: ConfigResponse) {
-                    callback(response.configs)
-                }
-            })
+            .subscribeXBuilder(context)
+            .successOnly(false)
+            .failed {
+                if (it.code == 404) {
+                    callback(null)
+                    true
+                } else false
+            }.response {
+                callback(it.configs)
+            }
     }
 
     protected abstract fun genDefaultConfigs(): List<RemoteConfig>
