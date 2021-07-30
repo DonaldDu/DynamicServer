@@ -38,8 +38,8 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 
-    implementation "com.github.DonaldDu:XPreferences:0.9.9"
-    api 'com.github.DonaldDu:XIntent:1.7.1'
+    implementation "com.github.DonaldDu:XPreferences:1.0.2"
+    api 'com.github.DonaldDu:XIntent:1.7.2'
     api 'com.github.DonaldDu:ApiHolder:1.3.3'
     api 'com.github.DonaldDu:RxNet:2.9.7'
 }
