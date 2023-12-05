@@ -5,10 +5,11 @@ import android.view.View
 import android.widget.TextView
 import com.dhy.dynamicserver.data.RemoteConfig
 import com.dhy.dynamicserver.data.getUsingTestServer
+import com.dhy.dynamicserver.data.runInMainScope
 import com.dhy.xintent.formatText
 
 open class TestServerUtil(context: Context, api: TestConfigApi?) : TestConfigUtil(context, api, "TestServers") {
-    override fun loadData(): List<RemoteConfig> {
+    override suspend fun loadData(): List<RemoteConfig> {
         return super.loadData().filter { it.hasAllServers() }
     }
 
@@ -23,6 +24,11 @@ open class TestServerUtil(context: Context, api: TestConfigApi?) : TestConfigUti
 
 fun TextView.updateServerLabel(usingTestServer: RemoteConfig? = null) {
     this.visibility = View.VISIBLE
-    val config = usingTestServer ?: context.getUsingTestServer()
-    formatText(config)
+    if (usingTestServer != null) {
+        formatText(usingTestServer)
+    } else {
+        runInMainScope {
+            formatText(context.getUsingTestServer())
+        }
+    }
 }

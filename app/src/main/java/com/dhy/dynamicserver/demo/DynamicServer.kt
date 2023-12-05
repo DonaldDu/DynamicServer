@@ -3,6 +3,7 @@ package com.dhy.dynamicserver.demo
 import android.content.Context
 import com.dhy.dynamicserver.data.RemoteConfig
 import com.dhy.dynamicserver.data.getUsingTestServer
+import com.dhy.dynamicserver.data.runInIoScope
 import com.dhy.dynamicserver.demo.ApiUtil.Companion.apiUtil
 
 enum class DynamicServer(private val release: String, private val test: String) {
@@ -17,8 +18,10 @@ enum class DynamicServer(private val release: String, private val test: String) 
     companion object {
         fun init(context: Context) {
             if (BuildConfig.DEBUG) {
-                RemoteConfig.initDynamicServer(DynamicServer::class.java)
-                updateServer(context.getUsingTestServer())
+                runInIoScope {
+                    RemoteConfig.initDynamicServer(DynamicServer::class.java)
+                    updateServer(context.getUsingTestServer())
+                }
             }
         }
 

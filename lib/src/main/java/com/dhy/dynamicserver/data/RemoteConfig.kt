@@ -1,14 +1,16 @@
 package com.dhy.dynamicserver.data
 
-import android.annotation.SuppressLint
 import android.content.Context
-import android.widget.Toast
 import androidx.annotation.Keep
 import com.dhy.dynamicserver.IConfigFormatter
 import com.dhy.dynamicserver.TestConfigUtil
 import com.dhy.dynamicserver.data.RemoteConfig.Companion.dynamicServers
 import com.dhy.dynamicserver.data.RemoteConfig.Companion.releaseServerTypeName
 import com.dhy.xpreference.XPreferences
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.Serializable
 
 @Keep
@@ -31,9 +33,8 @@ class RemoteConfig : Serializable {
             return name.isEmpty()
         }
 
-    @SuppressLint("DefaultLocale")
     fun isRelease(): Boolean {
-        return name.toLowerCase() == releaseServerTypeName
+        return name.lowercase() == releaseServerTypeName
     }
 
     fun toServers(): List<IDynamicServer> {
@@ -120,20 +121,43 @@ fun Enum<*>.release(): String {
     return dynamicServers.find { it.name == name && it.type == releaseServerTypeName }?.value ?: toString()
 }
 
-fun Context.getUsingTestServer(): RemoteConfig {
-    var testServer: RemoteConfig = XPreferences.get(this)
-    if (testServer.isEmpty || !testServer.hasAllServers()) {
-        val release = RemoteConfig.getReleaseConfig()
-        testServer = release ?: testServer
-        if (release == null) {
-            val msg = if (dynamicServers.isEmpty()) {
-                "please call RemoteConfig.initDynamicServers first"
-            } else {
-                "dynamicServer must contain '$releaseServerTypeName' server type"
+suspend fun Context.getUsingTestServer(): RemoteConfig {
+    return withContext(Dispatchers.IO) {
+        var testServer: RemoteConfig = getPref()
+        if (testServer.isEmpty || !testServer.hasAllServers()) {
+            val release = RemoteConfig.getReleaseConfig()
+            testServer = release ?: testServer
+            if (release == null) {
+                val msg = if (dynamicServers.isEmpty()) {
+                    "please call RemoteConfig.initDynamicServers first"
+                } else {
+                    "dynamicServer must contain '$releaseServerTypeName' server type"
+                }
+                throw Exception(msg)
             }
-            Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
-            println(msg)
         }
+        testServer
     }
-    return testServer
+}
+
+suspend fun <T> getPref(context: Context, clazz: Class<T>): T {
+    return withContext(Dispatchers.IO) {
+        XPreferences.get(context, clazz, false)
+    }
+}
+
+suspend inline fun <reified T> Context.getPref(): T {
+    return getPref(this, T::class.java)
+}
+
+fun runInIoScope(block: suspend CoroutineScope.() -> Unit) {
+    CoroutineScope(Dispatchers.IO).launch {
+        block()
+    }
+}
+
+fun runInMainScope(block: suspend CoroutineScope.() -> Unit) {
+    CoroutineScope(Dispatchers.Main).launch {
+        block()
+    }
 }

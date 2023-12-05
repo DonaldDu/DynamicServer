@@ -11,6 +11,8 @@ import com.dhy.dynamicserver.data.*
 import com.dhy.retrofitrxutil.subscribeX
 import com.dhy.retrofitrxutil.subscribeXBuilder
 import com.dhy.xpreference.XPreferences
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 abstract class TestConfigUtil(
     private val context: Context,
@@ -19,7 +21,6 @@ abstract class TestConfigUtil(
 ) : AdapterView.OnItemClickListener {
 
     private lateinit var configs: List<RemoteConfig>
-    private var testConfigSetting: TestConfigSetting = XPreferences.get(context)
     private lateinit var dialog: Dialog
     private lateinit var listView: ListView
     private val itemLayoutId = android.R.layout.simple_list_item_1
@@ -42,27 +43,37 @@ abstract class TestConfigUtil(
         }
     }
 
-    internal open fun loadData(): List<RemoteConfig> {
+    private suspend fun getTestConfigSetting(): TestConfigSetting {
+        return withContext(Dispatchers.IO) {
+            XPreferences.get(context)
+        }
+    }
+
+    internal open suspend fun loadData(): List<RemoteConfig> {
+        val testConfigSetting = getTestConfigSetting()
         return testConfigSetting.data[configName] ?: emptyList()
     }
 
     fun show() {
-        configs = loadData()
-        dialog = Dialog(context)
-        listView = ListView(context)
-        dialog.setContentView(listView)
-        val footer = LayoutInflater.from(context).inflate(itemLayoutId, null) as TextView
-        val type = if (isTestUser) "测试用户" else "测试服务器地址"
-        footer.text = String.format("更新【%s】数据", type)
-        listView.addFooterView(footer, null, true)
-        listView.onItemClickListener = this
-        updateListView()
-        dialog.show()
-        dialog.window?.apply {
-            val lp = attributes
-            lp.width = ViewGroup.LayoutParams.MATCH_PARENT
-            attributes = lp
+        runInMainScope {
+            configs = loadData()
+            dialog = Dialog(context)
+            listView = ListView(context)
+            dialog.setContentView(listView)
+            val footer = LayoutInflater.from(context).inflate(itemLayoutId, null) as TextView
+            val type = if (isTestUser) "测试用户" else "测试服务器地址"
+            footer.text = String.format("更新【%s】数据", type)
+            listView.addFooterView(footer, null, true)
+            listView.onItemClickListener = this@TestConfigUtil
+            updateListView()
+            dialog.show()
+            dialog.window?.apply {
+                val lp = attributes
+                lp.width = ViewGroup.LayoutParams.MATCH_PARENT
+                attributes = lp
+            }
         }
+
     }
 
     protected open fun getConfigFormatter(): IConfigFormatter {
@@ -104,11 +115,20 @@ abstract class TestConfigUtil(
         refreshData(context, api, getLcId(), getLcKey(), refreshDataCallback)
     }
 
+    private suspend fun saveData(data: TestConfigSetting) {
+        return withContext(Dispatchers.IO) {
+            XPreferences.put(context, data)
+        }
+    }
+
     private val refreshDataCallback: (List<RemoteConfig>?) -> Unit = { result ->
         if (result != null) {
-            testConfigSetting.data[configName] = result
-            XPreferences.put(context, testConfigSetting)
-            onGetData(result)
+            runInMainScope {
+                val testConfigSetting = getTestConfigSetting()
+                testConfigSetting.data[configName] = result
+                saveData(testConfigSetting)
+                onGetData(result)
+            }
         } else {
             val msg = if (isTestUser) "测试用户" else "测试服务器地址"
             AlertDialog.Builder(context)
